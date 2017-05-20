@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+		<style>
+			.outerContainer{
+				border: 1px solid grey;
+				position: relative;
+			}
+
+			.heading{
+				background: grey;
+				color: #fff;
+				padding: 10px 0 10px 5px;
+				font-size: 20px;
+				font-family: Ariel,sans-serif;
+				margin-bottom: 10px;
+				box-shadow: 0 1px 20px grey;
+			}
+
+			.audioControls{
+				padding: 20px 0;
+				position: relative;
+			}
+
+			.audioSpans{
+				color: black;
+				font-size: 20px;
+			}
+
+			.sliderPositioning{
+				position: absolute;
+				top: 42%;
+				height: 10px;
+			}
+
+			.sliderPositioning.right{
+				left: 48%;
+				width: 300px;
+			}
+
+			.sliderPositioning.left{
+				left: 36%;
+				width: 100px;
+			}
+
+			.sliderBar{
+				box-shadow: 0 0 6px grey inset;
+				width: 100%;
+				height: 100%;
+				position: relative;
+				transition: width 0.2s;
+			}
+
+			.sliderBob{
+				width: 0;
+				height: 100%;
+				position: relative;
+				top: 0;
+				left: 0;
+			}
+
+			#volumeSliderBob{
+				background: #6ec0fb;
+				width: 100%;
+			}
+
+			#contentSliderBob{
+				background: #ff9235;
+			}
+
+			.volumePositioning{
+				position: absolute;
+				left: 34%;
+				font-size: 20px;
+			}
+
+			#playPause{
+				font-size: 15px;
+				color: #fff;
+				margin-left: 46%;
+				padding: 5px;
+				background: red;
+				border-radius: 50%;
+				cursor: pointer;
+			}
+
+			#volumeSymbol{
+				color: #6ec0fb;
+			}
+
+			.window{
+				padding-top: 20px;
+				padding-bottom: 20px;
+			}
+
+			.audioPortion{
+				opacity: 1;
+				display: block;
+			}
+
+			.videoPortion{
+				opacity: 0;
+				display: none;
+				margin-left: 35%;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Audio API -->
+		<div class="outerContainer">
+			<div class="heading">
+				Audio and Video API
+			</div>
+			<div>
+				<code>Note: The icons used below are from Bootstrap Glyphicons. 
+					Their implementation has been provided using HTML5 Audio API and plain JavaScript.</code>
+			</div>
+			<div style="text-align: center;padding-top: 20px;">
+				<button class="btn btn-small btn-success" onclick="switchAV('audio')" id="audioBtn">Audio</button>
+				<button class="btn btn-small btn-default" onclick="switchAV('video')" id="videoBtn">Video</button>
+			</div>
+			<div class="window">
+				<div class="audioPortion">
+					<audio id="myAudio">
+						<source src="/audioSources/booty_music.mp3" type="audio/mpeg">
+						Sorry, your browser does not support HTML5 elements. Why the fuck are you still using this shit??!!
+					</audio>
+				</div>
+				<div class="videoPortion">
+					<video width="400" id="myVideo">
+						<source src="/videoSources/mov_bbb.mp4" type="video/mp4">
+						Sorry, your browser does not support HTML5 elements. Why the fuck are you still using this shit??!!
+					</video>
+					<p>
+						Video courtesy of 
+						<a href="https://www.bigbuckbunny.org/" target="_blank">Big Buck Bunny</a>.
+					</p>
+				</div>
+			</div>
+			
+			<div class="audioControls">
+				<div class="volumePositioning">
+					<span class="glyphicon glyphicon-volume-up" id="volumeSymbol"></span>
+				</div>
+				<div class="sliderPositioning left">
+					<div class="sliderBar" onclick="currentPositionInsideElement(this,event,'volume')">
+						<div class="sliderBob" id="volumeSliderBob"></div>
+					</div>
+				</div>
+				<span class="glyphicon glyphicon-play" id="playPause" onclick="playPauseClass(this)"></span>
+				<div class="sliderPositioning right">
+					<div class="sliderBar" onclick="currentPositionInsideElement(this,event,'content')">
+						<div class="sliderBob" id="contentSliderBob"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script type="text/javascript" src="/node_modules/jquery/dist/jquery.min.js"></script>
+		<script type="text/javascript" src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="/videoSources/sample.js"></script>
+		<script type="text/javascript">
+			//Audio/Video portion
+			var avReference = document.getElementById('myAudio');
+			var audioInterval = undefined;
+
+			function RefreshAV(){
+				audioInterval = undefined;
+				document.getElementById('contentSliderBob').style.width = '0%';
+				
+				document.getElementById('playPause').classList.remove('glyphicon-pause');
+				document.getElementById('playPause').classList.add('glyphicon-play');
+			}
+
+			function contentSlider(todo,positionAsPercent){
+				if(todo == 'play'){
+					if(positionAsPercent != undefined){
+						document.getElementById('contentSliderBob').style.width = positionAsPercent + '%';
+						avReference.currentTime = (positionAsPercent/100) * avReference.duration;
+
+					}
+
+					if(audioInterval == undefined){
+						audioInterval = setInterval(function(){
+							if(avReference.currentTime >= avReference.duration){
+								clearInterval(audioInterval);
+								RefreshAV();
+							}else{
+								document.getElementById('contentSliderBob').style.width = ((avReference.currentTime/avReference.duration) * 100) + '%';
+							}
+						},1000)
+					}
+
+					if(positionAsPercent >= 100){
+						RefreshAV();
+					}
+
+				}else if(todo == 'pause'){
+					clearInterval(audioInterval);
+					audioInterval = undefined;
+				}
+			}
+
+			function volumeSlider(positionAsPercent){
+				document.getElementById('volumeSymbol').className ='cleanstate';
+				var elem = document.getElementById('volumeSliderBob');
+				if(positionAsPercent < 5){
+					avReference.volume = 0;
+					document.getElementById('volumeSymbol').className = 'glyphicon glyphicon-volume-off';
+					elem.style.width = 0/100 * elem.parentNode.getBoundingClientRect().width + '%';
+				}else{
+					elem.style.width = positionAsPercent/100 * elem.parentNode.getBoundingClientRect().width + '%';
+					if(positionAsPercent >= 50){
+						document.getElementById('volumeSymbol').className = 'glyphicon glyphicon-volume-up';
+					}else{
+						document.getElementById('volumeSymbol').className = 'glyphicon glyphicon-volume-down';
+					}
+
+					avReference.volume = positionAsPercent/100;
+				}
+			}
+
+			function switchAV(type,element){
+				volumeSlider(100);
+				contentSlider('play',100);
+				document.getElementById('contentSliderBob').style.width = 0;
+
+				if(type == "audio"){
+					document.getElementsByClassName('videoPortion')[0].style.opacity = 0;
+					document.getElementsByClassName('videoPortion')[0].style.display = 'none';
+
+					if(!document.getElementById('audioBtn').classList.contains('btn-success')){
+						document.getElementById('audioBtn').classList.add('btn-success');
+						document.getElementById('audioBtn').classList.remove('btn-default');
+
+						document.getElementById('videoBtn').classList.remove('btn-success');
+						document.getElementById('videoBtn').classList.add('btn-default');
+					}
+
+					setTimeout(function(){
+						document.getElementsByClassName('audioPortion')[0].style.opacity = 1;
+						document.getElementsByClassName('audioPortion')[0].style.display = 'block';
+					},200)
+
+					avReference = document.getElementById('myAudio');
+				}else if(type == "video"){
+					document.getElementsByClassName('audioPortion')[0].style.opacity = 0;
+					document.getElementsByClassName('audioPortion')[0].style.display = 'none';				
+
+					if(!document.getElementById('videoBtn').classList.contains('btn-success')){
+						document.getElementById('videoBtn').classList.add('btn-success');
+						document.getElementById('videoBtn').classList.remove('btn-default');
+
+						document.getElementById('audioBtn').classList.remove('btn-success');
+						document.getElementById('audioBtn').classList.add('btn-default');
+					}
+
+					setTimeout(function(){
+						document.getElementsByClassName('videoPortion')[0].style.opacity = 1;
+						document.getElementsByClassName('videoPortion')[0].style.display = 'block';
+					},200)
+
+					avReference = document.getElementById('myVideo');
+				}
+			}
+
+			function playPauseClass(element){
+				if(element.classList.contains('glyphicon-play')){
+					avReference.play();
+					element.classList.remove('glyphicon-play');
+					element.classList.add('glyphicon-pause');
+					contentSlider('play');
+				}else if(element.classList.contains('glyphicon-pause')){
+					avReference.pause();
+					element.classList.remove('glyphicon-pause');
+					element.classList.add('glyphicon-play');
+					contentSlider('pause');
+				}
+			}
+
+			function currentPositionInsideElement(element,e,type){
+				var boundingRect = element.getBoundingClientRect();
+				var pageX = e.pageX;
+
+				if(type == 'content'){
+					contentSlider('play',(pageX - boundingRect.left)/(boundingRect.width) * 100);
+				}else if(type == 'volume'){
+					volumeSlider((pageX - boundingRect.left)/(boundingRect.width) * 100);
+				}
+			}
+		</script>
+	</body>
+</html>

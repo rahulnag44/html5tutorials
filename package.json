@@ -1,0 +1,21 @@
+{
+  "name": "html5tutorial",
+  "version": "1.0.0",
+  "description": "HTML5 Projects",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "html5",
+    "html5api"
+  ],
+  "author": "Ryan Evans",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "express": "^4.15.3",
+    "jquery": "^3.2.1"
+  }
+}
